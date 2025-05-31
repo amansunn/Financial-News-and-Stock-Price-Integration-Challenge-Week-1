@@ -1,10 +1,13 @@
-numpy
 pandas
+numpy
 matplotlib
 seaborn
+scipy
+plotly
+windrose
 scikit-learn
 nltk
-gensim
-statsmodels
+spacy
 jupyter
-pytest
+notebook
+ipykernel
