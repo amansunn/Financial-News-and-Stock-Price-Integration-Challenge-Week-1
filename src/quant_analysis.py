@@ -5,6 +5,7 @@ import pandas as pd
 import talib
 import matplotlib.pyplot as plt
 import pynance as pn
+from textblob import TextBlob
 
 class QuantAnalysis:
     @staticmethod
@@ -72,3 +73,39 @@ class QuantAnalysis:
         except Exception as e:
             print(f"Error fetching data from PyNance: {e}")
             return None
+
+def load_news_data(news_path):
+    df = pd.read_csv(news_path)
+    df['date'] = pd.to_datetime(df['date'])
+    return df
+
+def load_stock_data(stock_path):
+    stock_df = pd.read_csv(stock_path)
+    stock_df['date'] = pd.to_datetime(stock_df['date'])
+    return stock_df
+
+def merge_data(news_df, stock_df):
+    merged_df = pd.merge(news_df, stock_df, on='date', how='inner')
+    return merged_df
+
+def get_sentiment(text):
+    if pd.isna(text):
+        return 0
+    return TextBlob(str(text)).sentiment.polarity
+
+def add_sentiment(merged_df):
+    merged_df['sentiment'] = merged_df['headline'].apply(get_sentiment)
+    return merged_df
+
+def add_daily_return(merged_df):
+    merged_df = merged_df.sort_values('date')
+    merged_df['daily_return'] = merged_df['close'].pct_change()
+    return merged_df
+
+def aggregate_daily(merged_df):
+    daily_sentiment = merged_df.groupby('date')['sentiment'].mean()
+    daily_return = merged_df.groupby('date')['daily_return'].mean()
+    return daily_sentiment, daily_return
+
+def compute_correlation(daily_sentiment, daily_return):
+    return daily_sentiment.corr(daily_return)
